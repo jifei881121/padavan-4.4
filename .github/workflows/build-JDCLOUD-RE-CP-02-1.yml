@@ -35,8 +35,9 @@ jobs:
         KERNEL: 4.4
       run: |
         sudo git clone --depth=1 https://github.com/jifei881121/padavan-4.4.git /opt/padavan
-        sudo cd /opt/padavan/toolchain-mipsel
-        sudo sh dl_toolchain.sh
+        exit
+        cd /opt/padavan/toolchain-mipsel
+        sh dl_toolchain.sh
         sudo mkdir -p /opt/images/
     - name: Build Firmware
       env:
