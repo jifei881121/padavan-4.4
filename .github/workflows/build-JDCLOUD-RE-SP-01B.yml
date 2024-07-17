@@ -51,6 +51,7 @@ jobs:
         cp -f configs/templates/$TNAME.config .config
         sudo ./build_firmware_modify $TNAME 0
         sudo mv -f images/*.trx /opt/images/
+        sudo ./clear_tree
         
         # 上传打包后内容到artifact
       - name: Upload
