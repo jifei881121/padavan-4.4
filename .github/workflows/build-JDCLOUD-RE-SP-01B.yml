@@ -41,7 +41,7 @@ jobs:
         fi
         cd /opt/padavan/toolchain-mipsel
         sudo ./dl_toolchain.sh
-        mkdir -p /opt/images/
+        sudo mkdir -p /opt/images/
     - name: Build Firmware
       env:
         TNAME: JDCLOUD-RE-SP-01B
