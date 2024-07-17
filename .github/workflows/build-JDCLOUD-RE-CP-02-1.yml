@@ -1,5 +1,5 @@
 #修改TNAME: K2P 中的K2P为你需要编译的型号，注意名称要与configs/templates/目录下的名字相同
-name: Build JDCLOUD-RE-CP-02
+name: Build JDCLOUD-RE-SP-01B
 
 on: 
   release:
@@ -34,24 +34,51 @@ jobs:
       env:
         KERNEL: 4.4
       run: |
-        sudo git clone --depth=1 https://github.com/jifei881121/padavan-4.4.git /opt/padavan
-        exit
+        if [ $KERNEL = "4.4" ] ; then
+        git clone --depth=1 https://github.com/jifei881121/padavan-4.4.git /opt/padavan
+        else
+        git clone --depth=1 https://github.com/meisreallyba/padavan-4.4.git /opt/padavan
+        fi
         cd /opt/padavan/toolchain-mipsel
-        sh dl_toolchain.sh
-        sudo mkdir -p /opt/images/
+        sudo ./dl_toolchain.sh
+        mkdir -p /opt/images/
     - name: Build Firmware
       env:
         TNAME: JDCLOUD-RE-SP-01B
         KERNEL: 4.4
       run: |
-        sudo cd /opt/padavan/trunk
-        sudo cp -f configs/templates/$TNAME.config .config
-        sudo ./clear_tree
+        cd /opt/padavan/trunk
+        cp -f configs/templates/$TNAME.config .config
         sudo ./build_firmware_modify $TNAME 0
         sudo mv -f images/*.trx /opt/images/
-    - name : Upload packages
-      uses: actions/upload-artifact@master
-      if: always()
-      with:
-        name: Padavan-packages
-        path: /opt/images
+        
+        # 上传打包后内容到artifact
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.ref_name }}
+          path: /opt/images/
+          retention-days: 1  # 设置保留 artifact 天数
+    # 创建release
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release-${{ github.ref }}
+          draft: false
+          prerelease: false
+      # 将软件包打成zip压缩包
+      - run: zip  ${{ github.ref_name }}.zip staging/*
+      # 将zip压缩包上传至release
+      - name: Upload JAR to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path:  ${{ github.ref_name }}.zip
+          asset_name:  ${{ github.ref_name }}.zip
+          asset_content_type: application/zip
