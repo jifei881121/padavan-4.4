@@ -48,9 +48,9 @@ jobs:
         KERNEL: 4.4
       run: |
         cd /opt/padavan/trunk
-        sudo ./clear_tree
-        sudo fakeroot ./build_firmware_modify $TNAME 0
+        fakeroot ./build_firmware_modify $TNAME 0
         sudo mv -f images/*.trx /opt/images/
+        sudo ./clear_tree
     - name : Upload packages
       uses: actions/upload-artifact@master
       if: always()
