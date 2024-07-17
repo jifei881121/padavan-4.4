@@ -1,5 +1,5 @@
 #修改TNAME: K2P 中的K2P为你需要编译的型号，注意名称要与configs/templates/目录下的名字相同
-name: Build 1
+name: Build Padavan
 
 on: 
   release:
@@ -34,7 +34,11 @@ jobs:
       env:
         KERNEL: 4.4
       run: |
-        git clone --depth=1 https://github.com/jifei881121/padavan-4.4.git /opt/padavan
+        if [ $KERNEL = "4.4" ] ; then
+        git clone --depth=1 https://github.com/MeIsReallyBa/padavan-4.4.git /opt/padavan
+        else
+        git clone --depth=1 https://github.com/chongshengB/rt-n56u.git /opt/padavan
+        fi
         cd /opt/padavan/toolchain-mipsel
         sh dl_toolchain.sh
         mkdir -p /opt/images/
@@ -44,31 +48,12 @@ jobs:
         KERNEL: 4.4
       run: |
         cd /opt/padavan/trunk
-        cp -f configs/templates/$TNAME.config .config
-        sudo ./build_firmware_modify $TNAME 0
         sudo ./clear_tree
+        sudo fakeroot ./build_firmware_modify $TNAME 0
         sudo mv -f images/*.trx /opt/images/
-    - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ github.ref_name }}
-          path: /opt/images/
-          retention-days: 1 
-     # 创建release
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release-${{ github.ref }}
-          draft: false
-          prerelease: false
-      # 将软件包打成zip压缩包
-      - run: zip  ${{ github.ref_name }}.zip staging/*.trx
-      # 将zip压缩包上传至release
-      - name: Upload JAR to Release
-        uses: actions/upload-release-asset@v1
-  
-
+    - name : Upload packages
+      uses: actions/upload-artifact@master
+      if: always()
+      with:
+        name: Padavan-packages
+        path: /opt/images
